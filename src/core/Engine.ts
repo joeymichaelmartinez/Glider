@@ -7,15 +7,19 @@ export class Engine {
   private canvas: HTMLCanvasElement
   private renderer: THREE.WebGLRenderer
   private scene: THREE.Scene
-  private camera: THREE.PerspectiveCamera
-  private cubes: THREE.Mesh[] = [];
+  private camera: THREE.PerspectiveCamera;
   private width!: number;
   private height!: number;
   private pixelRatio!: number;
   private kite: Kite;
   private world: World;
-  private flowers: Flower
+  private flowers: Flower;
   
+  private lastTime = 0;
+  private mouse = new THREE.Vector2;
+  private raycaster = new THREE.Raycaster();
+  private targetPoint = new THREE.Vector3();
+  private groundPlane = new THREE.Plane(new THREE.Vector3(0,1,0), 1);
 
   constructor() {
     this.canvas = document.querySelector<HTMLCanvasElement>("#c")!;
@@ -32,24 +36,34 @@ export class Engine {
 
     this.scene = new THREE.Scene();
 
-    const fov = 75;
+    const fov = 50;
     const aspect = this.width / this.height;
     const near = 0.1;
     const far = 100;
     this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    this.camera.position.z = 4;
-    // this.createObjects();
+    this.camera.position.z = 20;
+    this.camera.position.y = 10;
+    this.camera.rotation.x = -Math.PI / 6;
+    this.scene.background = new THREE.Color(0x87ceeb);
+    this.scene.fog = new THREE.Fog(0x87ceeb, 50, 100);
     
     this.kite = new Kite(this.scene);
-    // this.kite.createKite();
     this.world = new World(this.scene);
-    // this.world.createWorld();
     this.flowers = new Flower(this.scene, 100);
+
+    window.addEventListener("mousemove", this.onMouseMove);
+    // const helper = new THREE.AxesHelper(2);
+    // this.scene.add(helper);
 
     this.createLights();
     
     window.addEventListener("resize", this.onResize)
     requestAnimationFrame(this.render);
+  }
+
+  private onMouseMove = (event: MouseEvent) => {
+    this.mouse.x = (event.clientX/this.width) * 2 - 1;
+    this.mouse.y = -(event.clientY/this.height) * 2 + 1;
   }
 
   private onResize = () => {
@@ -64,22 +78,6 @@ export class Engine {
     this.renderer.setPixelRatio(this.pixelRatio);
   }
 
-  
-
-  // private createObjects() {
-  //   const geometry = new THREE.BoxGeometry(1,1,1);
-  //   const makeInstance = (color: THREE.ColorRepresentation ,x: number) => {
-  //     const material = new THREE.MeshPhongMaterial({ color });
-  //     const cube = new THREE.Mesh(geometry, material);
-  //     cube.position.x = x;
-  //     this.scene.add(cube);
-  //     this.cubes.push(cube);
-  //   }
-  //   makeInstance(0x44aa88, 0);
-  //   makeInstance(0x8844aa, -2);
-  //   makeInstance(0xaa8844, 2);
-  // }
-
    private createLights() {
     const light = new THREE.DirectionalLight(0xffffff, 3);
     light.position.set(-1, 2, 4);
@@ -87,13 +85,23 @@ export class Engine {
   }
 
   private render = (time: number) => {
+    const delta = (time - this.lastTime) / 1000;
+    this.lastTime = time;
     
-    this.flowers.flowers.forEach((flower, i) => {
-      flower.rotation.z = Math.sin(time + i) * 0.1
-    })
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    this.raycaster.ray.intersectPlane(this.groundPlane, this.targetPoint);
+    this.kite.setTarget(this.targetPoint);
+   
+    this.kite.update(delta);
+    this.flowers.update(delta);
+   
+    // const desiredPosition = new THREE.Vector3().copy(this.kite.kiteGroup.position);
+    // desiredPosition.add(new THREE.Vector3(0,10,10));
+
+    // this.camera.position.lerp(desiredPosition, 0.1);
+    // this.camera.lookAt(this.kite.kiteGroup.position);
+   
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.render);
   }
-  
-
 }

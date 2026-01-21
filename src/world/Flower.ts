@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 export class Flower {
   private scene!: THREE.Scene;
-  public flowers: THREE.Group[] = [];
+  private flowers: THREE.Group[] = [];
 
   constructor(scene: THREE.Scene, amountOfFlowers: number) {
     this.scene = scene;
@@ -10,7 +10,7 @@ export class Flower {
   }
 
   private createFlowers(amountOfFlowers: number) {
-    for (let i = 0; i <= amountOfFlowers; i++) {
+    for (let i = 0; i < amountOfFlowers; i++) {
       const flowerGroup = new THREE.Group();
       const stemMesh = new THREE.Mesh(
         new THREE.CylinderGeometry(0.02, 0.02, 0.5),
@@ -35,6 +35,12 @@ export class Flower {
       this.flowers.push(flowerGroup);
       this.scene.add(flowerGroup);
     }
+  }
+
+  public update(delta: number) {
+    // this.flowers.forEach((flower, i) => {
+    //   flower.rotation.z += Math.sin(i) * delta * 0.2;
+    // });
   }
 
 }
