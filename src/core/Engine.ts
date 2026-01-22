@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Kite } from "../world/Kite";
 import { World } from "../world/World";
-import { Flower } from "../world/Flower";
+// import { Flower } from "../world/Flower";
 
 export class Engine {
   private canvas: HTMLCanvasElement
@@ -13,7 +13,7 @@ export class Engine {
   private pixelRatio!: number;
   private kite: Kite;
   private world: World;
-  private flowers: Flower;
+  // private flowers: Flower;
   
   private lastTime = 0;
   private mouse = new THREE.Vector2;
@@ -49,11 +49,11 @@ export class Engine {
     
     this.kite = new Kite(this.scene);
     this.world = new World(this.scene);
-    this.flowers = new Flower(this.scene, 100);
+    // this.flowers = new Flower(this.scene, 100);
 
     window.addEventListener("mousemove", this.onMouseMove);
-    // const helper = new THREE.AxesHelper(2);
-    // this.scene.add(helper);
+    const helper = new THREE.AxesHelper(2);
+    this.scene.add(helper);
 
     this.createLights();
     
@@ -93,7 +93,7 @@ export class Engine {
     this.kite.setTarget(this.targetPoint);
    
     this.kite.update(delta);
-    this.flowers.update(delta);
+    // this.flowers.update(delta);
    
     // const desiredPosition = new THREE.Vector3().copy(this.kite.kiteGroup.position);
     // desiredPosition.add(new THREE.Vector3(0,10,10));
