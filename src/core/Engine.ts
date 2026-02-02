@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Kite } from "../world/Kite";
 import { World } from "../world/World";
-// import { Flower } from "../world/Flower";
+import { Flower } from "../world/Flower";
 
 export class Engine {
   private canvas: HTMLCanvasElement
@@ -13,7 +13,7 @@ export class Engine {
   private pixelRatio!: number;
   private kite: Kite;
   private world: World;
-  // private flowers: Flower;
+  private flowers: Flower;
   
   private lastTime = 0;
   private mouse = new THREE.Vector2;
@@ -42,18 +42,16 @@ export class Engine {
     const far = 100;
     this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     this.camera.position.z = 20;
-    this.camera.position.y = 10;
-    this.camera.rotation.x = -Math.PI / 6;
+    this.camera.position.y = 20;
+    this.camera.rotation.x = -Math.PI / 4;
     this.scene.background = new THREE.Color(0x87ceeb);
     this.scene.fog = new THREE.Fog(0x87ceeb, 50, 100);
     
     this.kite = new Kite(this.scene);
     this.world = new World(this.scene);
-    // this.flowers = new Flower(this.scene, 100);
+    this.flowers = new Flower(this.scene, 200);
 
     window.addEventListener("mousemove", this.onMouseMove);
-    const helper = new THREE.AxesHelper(2);
-    this.scene.add(helper);
 
     this.createLights();
     
@@ -93,7 +91,7 @@ export class Engine {
     this.kite.setTarget(this.targetPoint);
    
     this.kite.update(delta);
-    // this.flowers.update(delta);
+    this.flowers.update(delta, this.kite.kiteGroup.position, this.kite.velocity);
    
     // const desiredPosition = new THREE.Vector3().copy(this.kite.kiteGroup.position);
     // desiredPosition.add(new THREE.Vector3(0,10,10));

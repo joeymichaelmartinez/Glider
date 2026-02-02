@@ -6,11 +6,12 @@ export class Kite {
   public kiteGroup!: THREE.Group;
   public kiteVisual!: THREE.Group;
   private target = new THREE.Vector3();
-  private speed = 15;
+  private speed = 20;
   private lastHeading = 0;
   private slowRadius = 2.5;   // start slowing down
   private stopRadius = 0.05; // consider "arrived"
   private floatTime = 0;
+  public velocity = new THREE.Vector3();
 
   constructor(scene: THREE.Scene) {
     this.scene = scene
@@ -36,14 +37,33 @@ export class Kite {
     kiteGeometry.computeVertexNormals();
     const KiteMaterial = new THREE.MeshStandardMaterial({
       color: 0xff5555,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
+      opacity: 0.5,
+      transparent: true
     });
     const kiteBody = new THREE.Mesh(kiteGeometry, KiteMaterial);
+    const edges = new THREE.EdgesGeometry(kiteGeometry);
+    const outline = new THREE.LineSegments(
+      edges,
+      new THREE.LineBasicMaterial({ color: 0xff5555, linewidth: 2 })
+    );
+    this.kiteVisual.add(outline);
 
     this.kiteVisual.add(kiteBody);
 
+    const cross = new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(1,0,0),
+        new THREE.Vector3(-1,0,0),
+        new THREE.Vector3(0,0,1),
+        new THREE.Vector3(0,0,-2)
+      ]),
+      new THREE.LineBasicMaterial({ color: 0xff5555 })
+    );
+    this.kiteVisual.add(cross);
+
     const tailShape = new THREE.CylinderGeometry(0.02, 0.02, 1);
-    const tailMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const tailMaterial = new THREE.MeshToonMaterial({ color: 0xffffff });
     const kiteTail = new THREE.Mesh(tailShape, tailMaterial);
     kiteTail.rotation.x = Math.PI / 2;
     kiteTail.position.z = -1.8;
@@ -74,7 +94,7 @@ export class Kite {
     if(!arrived) {
       
       direction.normalize();
-  
+      this.velocity = direction.clone().multiplyScalar(desiredSpeed);
       // Move
       this.kiteGroup.position.addScaledVector(
         direction,
@@ -89,7 +109,6 @@ export class Kite {
         heading,
         delta * 5
       );
-  
   
       const turnRate = angleDifference(
         this.lastHeading,

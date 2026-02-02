@@ -12,7 +12,7 @@ export class World {
   private createWorld() {
     const worldShape = new THREE.PlaneGeometry(1000, 1000);
     const worldMaterial = new THREE.MeshStandardMaterial({
-      color: 0x0000FF,
+      color: 0x848cfa,
       side: THREE.DoubleSide
     });
     const worldMesh = new THREE.Mesh(worldShape, worldMaterial);
