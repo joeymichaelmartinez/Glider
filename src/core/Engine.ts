@@ -14,12 +14,15 @@ export class Engine {
   private kite: Kite;
   private world: World;
   private flowers: Flower;
+  private cameraOffset = new THREE.Vector3(0, 20, 20);
+  private clickLocation = new THREE.Vector3();
   
   private lastTime = 0;
   private mouse = new THREE.Vector2;
   private raycaster = new THREE.Raycaster();
   private targetPoint = new THREE.Vector3();
   private groundPlane = new THREE.Plane(new THREE.Vector3(0,1,0), 1);
+  private mouseDown = false;
 
   constructor() {
     this.canvas = document.querySelector<HTMLCanvasElement>("#c")!;
@@ -49,9 +52,11 @@ export class Engine {
     
     this.kite = new Kite(this.scene);
     this.world = new World(this.scene);
-    this.flowers = new Flower(this.scene, 200);
+    this.flowers = new Flower(this.scene, 2000);
 
     window.addEventListener("mousemove", this.onMouseMove);
+    window.addEventListener("pointerdown", this.onMouseDown);
+    window.addEventListener("pointerup", this.onMouseUp);
 
     this.createLights();
     
@@ -62,6 +67,14 @@ export class Engine {
   private onMouseMove = (event: MouseEvent) => {
     this.mouse.x = (event.clientX/this.width) * 2 - 1;
     this.mouse.y = -(event.clientY/this.height) * 2 + 1;
+  }
+
+  private onMouseDown = () => {
+    this.mouseDown = true;
+  } 
+
+  private onMouseUp = () => {
+    this.mouseDown = false;
   }
 
   private onResize = () => {
@@ -91,13 +104,19 @@ export class Engine {
     this.kite.setTarget(this.targetPoint);
    
     this.kite.update(delta);
-    this.flowers.update(delta, this.kite.kiteGroup.position, this.kite.velocity);
-   
-    // const desiredPosition = new THREE.Vector3().copy(this.kite.kiteGroup.position);
-    // desiredPosition.add(new THREE.Vector3(0,10,10));
+    this.flowers.update(delta, this.kite.kiteGroup.position, this.kite.velocity, this.clickLocation);
 
-    // this.camera.position.lerp(desiredPosition, 0.1);
-    // this.camera.lookAt(this.kite.kiteGroup.position);
+    if(this.mouseDown) {
+      const desiredPosition = new THREE.Vector3().copy(this.targetPoint);
+      desiredPosition.add(this.cameraOffset);
+      const direction = new THREE.Vector3().subVectors(desiredPosition, this.camera.position);
+      direction.normalize();
+      const cameraMovementSpeed = 0.4;
+      this.camera.position.addScaledVector(direction, cameraMovementSpeed);
+      const center = new THREE.Vector2(0, 0);
+      this.raycaster.setFromCamera(center, this.camera);
+      this.raycaster.ray.intersectPlane(this.groundPlane, this.clickLocation);
+    }
    
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.render);
