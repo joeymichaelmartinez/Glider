@@ -50,7 +50,6 @@ export class Flower {
     this.time += delta;
 
     this.flowers.forEach((flower) => {
-      // if(flower.position.length() > 4) {
         flower.children.forEach((flowerChild) => {
           if(flowerChild instanceof THREE.Mesh) {
 
@@ -60,7 +59,6 @@ export class Flower {
             flowerChild.material.transparent = true;
           }
         });
-      // }
     });
     if(kiteVelocity.length() > 0.01) {
       this.flowers.forEach((flower, i) => {
