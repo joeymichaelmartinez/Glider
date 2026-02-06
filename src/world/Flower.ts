@@ -2,20 +2,25 @@ import * as THREE from "three";
 
 export class Flower {
   private scene!: THREE.Scene;
+  private flowerPatchRadius: number;
+  private stemMesh!: THREE.InstancedMesh;
+  private stemDummy = new THREE.Object3D();
+  private stemHeights: number[] = [];
+  
   private flowers: THREE.Group[] = [];
   private time = 0;
-  private kiteInfluenceRadius = 5;
+  private kiteInfluenceRadius = 6;
   private fogRadius = 5;
-  private flowerPatchRadius = 50;
 
-  constructor(scene: THREE.Scene, amountOfFlowers: number) {
+  constructor(scene: THREE.Scene, amountOfFlowers: number, worldSize: THREE.Vector3) {
     this.scene = scene;
+    this.flowerPatchRadius = worldSize.x;
     this.createFlowers(amountOfFlowers);
   }
 
   private createFlowers(amountOfFlowers: number) {
     for (let i = 0; i < amountOfFlowers; i++) {
-      const stemMax = 9;
+      const stemMax = 7;
       const stemMin = 0.5;
       const flowerHeight = Math.random() * (stemMax - stemMin) + stemMin;
       const flowerGroup = new THREE.Group();
@@ -27,17 +32,18 @@ export class Flower {
       flowerGroup.add(stemMesh);
       const bulbMax = 0.2;
       const bulbMin = 0.05;
-      const flowerBuld = Math.random() * (bulbMax - bulbMin) + bulbMin;
+      const flowerColor = Math.round(Math.random()) ? 0xFF7A3D : 0xffaa00;
+      const flowerBulb = Math.random() * (bulbMax - bulbMin) + bulbMin;
       const bulbMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(flowerBuld, 8, 8),
-        new THREE.MeshBasicMaterial({ color: 0xFF7A3D })
+        new THREE.SphereGeometry(flowerBulb, 8, 8),
+        new THREE.MeshBasicMaterial({ color: flowerColor })
       );
 
       bulbMesh.position.y = flowerHeight + 0.08;
       flowerGroup.add(bulbMesh);
       flowerGroup.position.set(
         (Math.random() - 0.5) * this.flowerPatchRadius,
-        -1,
+        -4,
         (Math.random() - 0.5) * this.flowerPatchRadius
       )
 

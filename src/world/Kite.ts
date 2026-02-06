@@ -1,21 +1,29 @@
 import * as THREE from "three";
 import { lerpAngle, angleDifference } from "../utils/MathUtilsHelper";
+import type { Bounds } from "./World";
 
 export class Kite {
-  private scene: THREE.Scene;
+  public velocity = new THREE.Vector3();
   public kiteGroup!: THREE.Group;
   public kiteVisual!: THREE.Group;
+  private scene: THREE.Scene;
   private target = new THREE.Vector3();
+  private kiteMin = new THREE.Vector3();
+  private kiteMax = new THREE.Vector3();
+
   private speed = 20;
   private lastHeading = 0;
-  private slowRadius = 2.5;   // start slowing down
-  private stopRadius = 0.05; // consider "arrived"
+  private slowRadius = 2.5;
+  private stopRadius = 0.05;
   private floatTime = 0;
-  public velocity = new THREE.Vector3();
 
-  constructor(scene: THREE.Scene) {
+  constructor(scene: THREE.Scene, worldBorder: Bounds) {
     this.scene = scene
     this.kiteGroup = new THREE.Group();
+    this.kiteMin = new THREE.Vector3().copy(worldBorder.min)
+    // .add(new THREE.Vector3(5,0,5));
+    this.kiteMax = new THREE.Vector3().copy(worldBorder.max)
+    // .add(new THREE.Vector3(-5,0,-5));
     this.createKite();
   }
 
@@ -24,13 +32,13 @@ export class Kite {
     this.kiteVisual = new THREE.Group();
     const kiteGeometry = new THREE.BufferGeometry();
     const vertices = new Float32Array([
-      -1.0, 0.0, 0.0, // v0
-      0.0, 0.0, 1.0, // v1
-      1.0, 0.0, 0.0, // v2
+      -1.0, 0.0, 0.0, 
+      0.0, 0.0, 1.0,
+      1.0, 0.0, 0.0,
 
-      -1.0, 0.0, 0.0, // v3
-      1.0, 0.0, 0.0, // v4
-      0.0, 0.0, -2.0  // v5
+      -1.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      0.0, 0.0, -2.0
     ]);
 
     kiteGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
@@ -91,10 +99,11 @@ export class Kite {
     if (distance < this.slowRadius) {
       desiredSpeed = this.speed * (distance / this.slowRadius);
     }
+
     if(!arrived) {
-      
       direction.normalize();
       this.velocity = direction.clone().multiplyScalar(desiredSpeed);
+      
       // Move
       this.kiteGroup.position.addScaledVector(
         direction,
@@ -132,6 +141,6 @@ export class Kite {
   }
 
   public setTarget(point: THREE.Vector3) {
-    this.target.copy(point);
+    this.target.copy(point).clamp(this.kiteMin, this.kiteMax);
   }
 }
