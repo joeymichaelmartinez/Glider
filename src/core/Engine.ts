@@ -41,8 +41,9 @@ export class Engine {
       antialias: true,
       canvas: this.canvas
     });
-    this.renderer.setSize(this.width, this.height)
-    this.renderer.setPixelRatio(this.pixelRatio)
+    this.renderer.setSize(this.width, this.height);
+    this.renderer.setPixelRatio(this.pixelRatio);
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     this.scene = new THREE.Scene();
 
@@ -59,7 +60,7 @@ export class Engine {
 
     this.world = new World(this.scene, this.worldBorderRadius);
     this.kite = new Kite(this.scene, this.world.bounds);
-    this.flowers = new Flower(this.scene, 2000, this.world.size);
+    this.flowers = new Flower(this.scene, 5000, this.world.size);
 
     window.addEventListener('visibilitychange', this.handleVisibilityChange);
     window.addEventListener("mousemove", this.onMouseMove);
@@ -122,29 +123,30 @@ export class Engine {
 
       this.kite.update(delta);
       this.flowers.update(delta, this.kite.kiteGroup.position, this.kite.velocity, this.cameraCenterWorldIntersection);
+      
       if (this.mouseDown) {
         const clampedTarget = this.targetPoint.clone();
         this.world.clampXZ(clampedTarget);
         this.desiredCameraPosition.copy(clampedTarget).add(this.cameraOffset);
         
         const direction = new THREE.Vector3().subVectors(this.desiredCameraPosition, this.camera.position);
-        // const distance = direction.length()  ;
-        // if(distance > 0.001) 
         direction.normalize();
+        
         let desiredCameraMovementSpeed = this.cameraMovementSpeed;
         const distanceFromCameraToDesiredPosition = this.camera.position.distanceTo(this.desiredCameraPosition);
         if (distanceFromCameraToDesiredPosition < this.cameraSlowRadius) {
           desiredCameraMovementSpeed = this.cameraMovementSpeed * (distanceFromCameraToDesiredPosition / this.cameraSlowRadius);
         }
+        
         this.cameraVelocity = direction.clone().multiplyScalar(desiredCameraMovementSpeed);
         this.camera.position.add(this.cameraVelocity);
-        const center = new THREE.Vector2(0, 0);
-        this.raycaster.setFromCamera(center, this.camera);
-        this.raycaster.ray.intersectPlane(this.groundPlane, this.cameraCenterWorldIntersection);
+      } else {
+        // Apply momentum when mouse is released
+        this.camera.position.add(this.cameraVelocity);
+        this.cameraVelocity.multiplyScalar(0.95);
       }
       
-      this.camera.position.addScaledVector(this.cameraVelocity, this.cameraVelocity.length());
-      this.cameraVelocity.multiplyScalar(0.95);
+      // Update camera center intersection (only once per frame)
       const center = new THREE.Vector2(0, 0);
       this.raycaster.setFromCamera(center, this.camera);
       this.raycaster.ray.intersectPlane(this.groundPlane, this.cameraCenterWorldIntersection);
