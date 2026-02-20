@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { Kite } from "../world/Kite";
 import { World } from "../world/World";
 import { Flower } from "../world/Flower";
+import { AudioController } from "../audio/AudioController";
 
 export class Engine {
   private canvas: HTMLCanvasElement
@@ -14,6 +15,7 @@ export class Engine {
   private kite: Kite;
   private flowers: Flower;
   private world: World;
+  private audioController: AudioController;
   private mouse = new THREE.Vector2;
   private clock = new THREE.Clock();
   private cameraCenterWorldIntersection = new THREE.Vector3();
@@ -61,6 +63,8 @@ export class Engine {
     this.world = new World(this.scene, this.worldBorderRadius);
     this.kite = new Kite(this.scene, this.world.bounds);
     this.flowers = new Flower(this.scene, 5000, this.world.size);
+    this.audioController = new AudioController();
+    
 
     window.addEventListener('visibilitychange', this.handleVisibilityChange);
     window.addEventListener("mousemove", this.onMouseMove);
@@ -88,6 +92,7 @@ export class Engine {
   }
 
   private onMouseDown = () => {
+    this.audioController.play();
     this.mouseDown = true;
   }
 
