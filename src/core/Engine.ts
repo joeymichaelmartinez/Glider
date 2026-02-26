@@ -92,7 +92,7 @@ export class Engine {
   }
 
   private onMouseDown = () => {
-    this.audioController.play();
+    // this.audioController.play();
     this.mouseDown = true;
   }
 
@@ -127,7 +127,7 @@ export class Engine {
       this.kite.setTarget(this.targetPoint);
 
       this.kite.update(delta);
-      this.flowers.update(delta, this.kite.kiteGroup.position, this.kite.velocity, this.cameraCenterWorldIntersection);
+      this.flowers.update(delta, this.kite.kiteGroup.position, this.kite.velocity, this.cameraCenterWorldIntersection, this.audioController);
       
       if (this.mouseDown) {
         const clampedTarget = this.targetPoint.clone();

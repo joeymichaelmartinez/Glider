@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import type { AudioController } from "../audio/AudioController";
 
 export class Flower {
   private scene!: THREE.Scene;
@@ -14,9 +15,10 @@ export class Flower {
   private bulbDummy = new THREE.Object3D();
   private bulbScales: THREE.Vector3[] = [];
   private bulbColors: ('yellow' | 'orange')[] = [];
-
+  
   private time = 0;
   private kiteInfluenceRadius = 6;
+  private insideKiteRadius: boolean[] = [];
   
   private fogRadius = 7;
   private fogFalloff = 5;
@@ -99,6 +101,7 @@ export class Flower {
       const stemMin = 0.5;
       const flowerHeight = Math.random() * (stemMax - stemMin) + stemMin;
       this.stemHeights.push(flowerHeight);
+      this.insideKiteRadius.push(false);
 
       const bulbMin = 0.05;
       const bulbMax = 0.2;
@@ -152,7 +155,8 @@ export class Flower {
     delta: number,
     kitePosition: THREE.Vector3,
     kiteVelocity: THREE.Vector3,
-    cameraCenterWorldIntersection: THREE.Vector3
+    cameraCenterWorldIntersection: THREE.Vector3,
+    audioController: AudioController
   ) {
     this.time += delta;
     
@@ -175,13 +179,20 @@ export class Flower {
 
       let xRot = 0;
       let zRot = 0;
-
+      let inside = this.insideKiteRadius[i];
       if (distance < this.kiteInfluenceRadius) {
+        if(!inside) {
+          console.log('here');
+          audioController.play();
+          this.insideKiteRadius[i] = true;
+
+        }
         const strength = 1 - distance / this.kiteInfluenceRadius;
         xRot = THREE.MathUtils.clamp(direction.z * strength, -0.25, 0.25);
         zRot = THREE.MathUtils.clamp(-direction.x * strength, -0.25, 0.25);
       } else {
         // Idle sway
+        this.insideKiteRadius[i] = false;
         xRot = Math.sin(this.time * 1.2 + i) * 0.05;
         zRot = Math.sin(this.time * 1.5 + i) * 0.05;
       }
